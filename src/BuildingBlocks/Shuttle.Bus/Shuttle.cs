@@ -5,44 +5,18 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Earth.Aggregates.Food
+namespace Shuttle.Bus
 {
-    public class SendFoodSender
-    {
-        private IBus bus;
-
-        public void Send()
-        {
-            var factory = new ConnectionFactory()
-            {
-                HostName = "localhost",
-                UserName = "guest",
-                Password = "guest"
-            };
-
-            var connection = new RabbitMQConnection(factory);
-            connection.TryConnect();
-            var bus = new Bus(connection);
-
-            // Enviar a mensagem.
-            var msg = new SendFoodMessage("Onions");
-            bus.Publish(msg);
-        }
-    }
-
-    public class Bus : IBus
+    public class DiscoveryShuttle : IShuttle
     {
         private const string BROKER_NAME = "Cosmos";
         private readonly RabbitMQConnection connection;
 
-        public Bus(RabbitMQConnection connection)
+        public DiscoveryShuttle(RabbitMQConnection connection)
         {
             this.connection = connection;
         }
@@ -58,8 +32,8 @@ namespace Earth.Aggregates.Food
                 .Handle<BrokerUnreachableException>()
                 .Or<SocketException>()
                 .WaitAndRetry(
-                    5, 
-                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), 
+                    5,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                     (ex, time) =>
                     {
                         // _logger.LogWarning(ex.ToString());
