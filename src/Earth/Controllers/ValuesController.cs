@@ -10,11 +10,16 @@ namespace Earth.Controllers
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
+        private readonly SendFoodSender sender;
+        public ValuesController(SendFoodSender sender)
+        {
+            this.sender = sender;
+        }
+
         // GET api/values
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            var sender = new SendFoodSender();
             sender.Send();
             return new string[] { "value1", "value2" };
         }

@@ -5,29 +5,20 @@ using Shuttle.Bus;
 
 namespace Earth.Aggregates.Food
 {
-    public class SendFoodSender : IIntegrationEventHandler<FoodMessage>
+    public class SendFoodSender
     {
-        public Task Handle(FoodMessage @event)
+        private readonly DiscoveryShuttle shuttle;
+
+        public SendFoodSender(DiscoveryShuttle shuttle)
         {
-            return Task.CompletedTask;
+            this.shuttle = shuttle;
         }
 
         public void Send()
-        {
-            var factory = new ConnectionFactory()
-            {
-                HostName = "localhost",
-                UserName = "guest",
-                Password = "guest"
-            };
-
-            var connection = new RabbitMQConnection(factory);
-            connection.TryConnect();
-            var bus = new DiscoveryShuttle(connection);
-
+        {            
             // Enviar a mensagem.
             var msg = new FoodMessage("Onions");
-            bus.Publish(msg);
+            shuttle.Publish(msg);
         }
     }
 }

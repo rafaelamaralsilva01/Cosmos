@@ -37,8 +37,9 @@ namespace Satellite
             services.AddSingleton<DiscoveryShuttle>(sp =>
             {
                 var connection = sp.GetRequiredService<RabbitMQConnection>();
-                var bus = new DiscoveryShuttle(connection);
-                
+                var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
+                var bus = new DiscoveryShuttle(connection, "teste", iLifetimeScope);
+
                 // Config
                 bus.Subscribe<FoodMessage, SendFoodHandler>();
 
@@ -58,9 +59,13 @@ namespace Satellite
                 return connection;
             });
 
+            services.AddTransient<SendFoodHandler>();
+
             var builder = new ContainerBuilder();
             builder.Populate(services);
-            return new AutofacServiceProvider(builder.Build());
+            var container = builder.Build();
+            container.Resolve<DiscoveryShuttle>();
+            return new AutofacServiceProvider(container);
         }
 
         /// <summary>
