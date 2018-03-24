@@ -4,6 +4,8 @@ using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 
@@ -19,7 +21,7 @@ namespace Shuttle.Bus
             this.connection = connection;
         }
 
-        public void Publish<T>(T message)
+        public void Publish<T>(T message) where T : IMessage
         {
             if (!connection.IsConnected)
             {
@@ -61,5 +63,15 @@ namespace Shuttle.Bus
                 });
             }
         }
+
+        public void Subscribe<T>(T message, Action<T> handler) where T : IMessage
+        {
+
+        }
+    }
+
+    public interface IMessage
+    {
+
     }
 }

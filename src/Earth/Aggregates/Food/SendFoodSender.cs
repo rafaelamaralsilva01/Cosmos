@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using Earth.Contracts;
+using RabbitMQ.Client;
 using Shuttle.Bus;
 
 namespace Earth.Aggregates.Food
@@ -19,7 +20,7 @@ namespace Earth.Aggregates.Food
             var bus = new DiscoveryShuttle(connection);
 
             // Enviar a mensagem.
-            var msg = new SendFoodMessage("Onions");
+            var msg = new FoodMessage("Onions");
             bus.Publish(msg);
         }
     }
