@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  earth:
+    image: earth
+    build:
+      context: .
+      dockerfile: Earth/Dockerfile
+    depends_on:
+      - rabbitmq
+
+  satellite:
+    image: satellite
+    build:
+      context: .
+      dockerfile: Satellite/Dockerfile
+    depends_on:
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+      - rabbitmq
