@@ -1,11 +1,17 @@
-﻿using Earth.Contracts;
+﻿using System.Threading.Tasks;
+using Earth.Contracts;
 using RabbitMQ.Client;
 using Shuttle.Bus;
 
 namespace Earth.Aggregates.Food
 {
-    public class SendFoodSender
+    public class SendFoodSender : IIntegrationEventHandler<FoodMessage>
     {
+        public Task Handle(FoodMessage @event)
+        {
+            return Task.CompletedTask;
+        }
+
         public void Send()
         {
             var factory = new ConnectionFactory()

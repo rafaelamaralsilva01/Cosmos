@@ -21,7 +21,7 @@ namespace Shuttle.Bus
             this.connection = connection;
         }
 
-        public void Publish<T>(T message) where T : IMessage
+        public void Publish(IntegrationEvent message)
         {
             if (!connection.IsConnected)
             {
@@ -64,14 +64,10 @@ namespace Shuttle.Bus
             }
         }
 
-        public void Subscribe<T>(T message, Action<T> handler) where T : IMessage
+        public void Subscribe<T, TH>() 
+            where T : IntegrationEvent
+            where TH : IIntegrationEventHandler<T>
         {
-
         }
-    }
-
-    public interface IMessage
-    {
-
     }
 }

@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Shuttle.Bus;
+using System;
 
 namespace Earth.Contracts
 {
-    public class FoodMessage
+    public class FoodMessage : IntegrationEvent
     {
         public FoodMessage(string name)
         {

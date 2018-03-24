@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Earth.Contracts;
+using Shuttle.Bus;
 using System.Threading.Tasks;
 
 namespace Satellite.Aggregates.Food
 {
-    public class SendFoodHandler
+    public class SendFoodHandler : IIntegrationEventHandler<FoodMessage>
     {
-        public Task Handle(dynamic message)
+        public Task Handle(FoodMessage message)
         {
             return Task.CompletedTask;
         }
