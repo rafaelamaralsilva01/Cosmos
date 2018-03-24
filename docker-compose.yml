@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: Satellite/Dockerfile
     depends_on:
+      - rabbitmq
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-      - rabbitmq

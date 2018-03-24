@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Earth.Aggregates.Food;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Earth.Controllers
@@ -13,6 +14,8 @@ namespace Earth.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
+            var sender = new SendFoodSender();
+            sender.Send();
             return new string[] { "value1", "value2" };
         }
 
