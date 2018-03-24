@@ -5,7 +5,7 @@ services:
     image: earth
     build:
       context: .
-      dockerfile: Earth/Dockerfile
+      dockerfile: src/Earth/Dockerfile
     depends_on:
       - rabbitmq
 
@@ -13,7 +13,7 @@ services:
     image: satellite
     build:
       context: .
-      dockerfile: Satellite/Dockerfile
+      dockerfile: src/Satellite/Dockerfile
     depends_on:
       - rabbitmq
 
