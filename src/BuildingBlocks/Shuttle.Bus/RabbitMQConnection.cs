@@ -72,8 +72,7 @@ namespace Shuttle.Bus
 
                 policy.Execute(() =>
                 {
-                    connection = connectionFactory
-                          .CreateConnection();
+                    connection = connectionFactory.CreateConnection();
                 });
 
                 if (IsConnected)

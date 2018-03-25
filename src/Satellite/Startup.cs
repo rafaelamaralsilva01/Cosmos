@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Autofac;
+﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Earth.Contracts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using Satellite.Aggregates.Food;
+using Satellite.Aggregates.Technologies;
 using Shuttle.Bus;
+using System;
 
 namespace Satellite
 {
@@ -41,8 +36,7 @@ namespace Satellite
                 var bus = new DiscoveryShuttle(connection, "teste", iLifetimeScope);
 
                 // Config
-                bus.Subscribe<FoodMessage, SendFoodHandler>();
-                bus.Subscribe<FoodMessage, TesteHandler>();
+                bus.Subscribe<AskForTechMessage, AskForTechHandler>();
 
                 return bus;
             });
@@ -60,8 +54,7 @@ namespace Satellite
                 return connection;
             });
 
-            services.AddTransient<SendFoodHandler>();
-            services.AddTransient<TesteHandler>();
+            services.AddTransient<AskForTechHandler>();
 
             var builder = new ContainerBuilder();
             builder.Populate(services);

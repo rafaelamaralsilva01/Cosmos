@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Earth.Contracts;
 using RabbitMQ.Client;
 using Shuttle.Bus;
@@ -15,10 +16,8 @@ namespace Earth.Aggregates.Food
         }
 
         public void Send()
-        {            
-            // Enviar a mensagem.
-            var msg = new FoodMessage("Onions");
-            shuttle.Publish(msg);
+        {
+            throw new NotImplementedException();
         }
     }
 }

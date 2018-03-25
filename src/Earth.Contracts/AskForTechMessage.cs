@@ -3,9 +3,9 @@ using System;
 
 namespace Earth.Contracts
 {
-    public class FoodMessage : IntegrationEvent
+    public class AskForTechMessage : IntegrationEvent
     {
-        public FoodMessage(string name)
+        public AskForTechMessage(string name)
         {
             this.Name = name;
         }

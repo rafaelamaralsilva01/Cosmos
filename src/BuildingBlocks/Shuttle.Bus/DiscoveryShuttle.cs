@@ -111,26 +111,17 @@ namespace Shuttle.Bus
                     var subscriptions = subsManager.GetHandlersForEvent(eventName);
                     foreach (var subscription in subscriptions)
                     {
-                        if (subscription.IsDynamic)
+                        var eventType = subsManager.GetEventTypeByName(eventName);
+                        var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
+                        var handler = scope.ResolveOptional(subscription.HandlerType);
+                        if (handler != null)
                         {
-                            //var handler = scope.ResolveOptional(subscription.HandlerType) as IDynamicIntegrationEventHandler;
-                            //dynamic eventData = JObject.Parse(message);
-                            //await handler.Handle(eventData);
-                        }
-                        else
-                        {
-                            var eventType = subsManager.GetEventTypeByName(eventName);
-                            var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
-                            var handler = scope.ResolveOptional(subscription.HandlerType);
-                            if (handler != null)
-                            {
-                                var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
-                                await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
-                            }                            
+                            var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
+                            await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
                         }
                     }
                 }
             }
         }
-    }   
+    }
 }
