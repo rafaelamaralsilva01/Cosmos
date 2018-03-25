@@ -11,4 +11,12 @@ namespace Satellite.Aggregates.Food
             return Task.CompletedTask;
         }
     }
+
+    public class TesteHandler : IIntegrationEventHandler<FoodMessage>
+    {
+        public Task Handle(FoodMessage @event)
+        {
+            return Task.CompletedTask;
+        }
+    }
 }

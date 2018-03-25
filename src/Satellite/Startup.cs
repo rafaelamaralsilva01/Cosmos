@@ -42,6 +42,7 @@ namespace Satellite
 
                 // Config
                 bus.Subscribe<FoodMessage, SendFoodHandler>();
+                bus.Subscribe<FoodMessage, TesteHandler>();
 
                 return bus;
             });
@@ -60,6 +61,7 @@ namespace Satellite
             });
 
             services.AddTransient<SendFoodHandler>();
+            services.AddTransient<TesteHandler>();
 
             var builder = new ContainerBuilder();
             builder.Populate(services);

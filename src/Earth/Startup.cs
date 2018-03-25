@@ -46,7 +46,7 @@ namespace Earth
             });
 
             services.AddTransient<SendFoodSender>();
-
+            
             services.AddTransient<RabbitMQConnection>(sp =>
             {
                 var factory = new ConnectionFactory()
