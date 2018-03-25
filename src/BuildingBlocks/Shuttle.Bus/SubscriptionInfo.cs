@@ -13,7 +13,7 @@ namespace Shuttle.Bus
 
         public static SubscriptionInfo Typed(Type handlerType)
         {
-            return new SubscriptionInfo(false, handlerType);
+            return new SubscriptionInfo(handlerType);
         }
     }
 }
