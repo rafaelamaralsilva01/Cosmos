@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System;
 using System.Collections.Concurrent;
@@ -20,7 +21,7 @@ namespace Shuttle.Bus
         private readonly InMemoryConsumersManager consumerManager;
         private readonly ILifetimeScope autofac;
 
-        public DiscoveryShuttle(RabbitMQConnection connection, string queueName, ILifetimeScope autofac)
+        public DiscoveryShuttle(RabbitMQConnection connection, ILifetimeScope autofac)
         {
             this.connection = connection;
             this.autofac = autofac;
@@ -68,6 +69,75 @@ namespace Shuttle.Bus
                                      basicProperties: properties,
                                      body: body);
                 });
+            }
+        }
+
+        public string Publish(IntegrationEvent message, Func<string> process)
+        {
+            if (!connection.IsConnected)
+            {
+                connection.TryConnect();
+            }
+
+            var policy = RetryPolicy
+                .Handle<BrokerUnreachableException>()
+                .Or<SocketException>()
+                .WaitAndRetry(
+                    5,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    (ex, time) =>
+                    {
+                        // _logger.LogWarning(ex.ToString());
+                    });
+
+            using (var channel = connection.CreateModel())
+            {
+                var eventName = message.GetType().Name;
+
+                BlockingCollection<string> respQueue = new BlockingCollection<string>();
+                var replyQueueName = channel.QueueDeclare().QueueName;
+                var rpcConsumer = new EventingBasicConsumer(channel);
+                var props = channel.CreateBasicProperties();
+                var correlationId = Guid.NewGuid().ToString();
+                props.CorrelationId = correlationId;
+                props.ReplyTo = replyQueueName;
+                props.DeliveryMode = 2;
+                rpcConsumer.Received += (model, ea) =>
+                {
+                    var iBody = ea.Body;
+                    var response = Encoding.UTF8.GetString(iBody);
+                    if (ea.BasicProperties.CorrelationId == correlationId)
+                    {
+                        respQueue.Add(response);
+                    }
+                };
+
+                channel.ExchangeDeclare(
+                    BROKER_NAME,
+                    type: "topic");
+
+                var @event = JsonConvert.SerializeObject(message);
+                var body = Encoding.UTF8.GetBytes(@event);
+
+                policy.Execute(() =>
+                {
+                    //var properties = channel.CreateBasicProperties();
+                    //properties.DeliveryMode = 2; // persistent
+
+                    channel.BasicPublish(exchange: BROKER_NAME,
+                                     routingKey: eventName,
+                                     mandatory: true,
+                                     // basicProperties: properties,
+                                     basicProperties: props,
+                                     body: body);
+
+                    channel.BasicConsume(
+                        consumer: rpcConsumer,
+                        queue: replyQueueName,
+                        autoAck: true);                    
+                });
+
+                return respQueue.Take();
             }
         }
 
@@ -122,6 +192,11 @@ namespace Shuttle.Bus
                     }
                 }
             }
+        }
+
+        private async Task RpcProcessEvent(string eventName, string message)
+        {
+            await ProcessEvent(eventName, message);
         }
     }
 }

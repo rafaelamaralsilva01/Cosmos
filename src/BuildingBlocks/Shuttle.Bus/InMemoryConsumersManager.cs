@@ -8,11 +8,13 @@ using System.Threading.Tasks;
 
 namespace Shuttle.Bus
 {
-    public class InMemoryConsumersManager
+    public class InMemoryConsumersManager : IDisposable
     {
         private const string BROKER_NAME = "Cosmos";
-        private readonly Dictionary<string, List<ConsumerInfo>> consumers;
         private readonly RabbitMQConnection connection;
+
+        private Dictionary<string, List<ConsumerInfo>> consumers;
+        private bool disposed;
 
         public InMemoryConsumersManager(RabbitMQConnection connection)
         {
@@ -48,8 +50,9 @@ namespace Shuttle.Bus
 
             var channel = connection.CreateModel();
 
-            channel.ExchangeDeclare(exchange: BROKER_NAME,
-                                 type: "topic");
+            channel.ExchangeDeclare(
+                exchange: BROKER_NAME,
+                type: "topic");
 
             channel.QueueDeclare(queue: queueName,
                                  durable: true,
@@ -81,6 +84,52 @@ namespace Shuttle.Bus
             return channel;
         }
 
+        //private void T()
+        //{
+        //    string rpcResponseQueue = channel.QueueDeclare().QueueName;
+
+        //    string correlationId = Guid.NewGuid().ToString();
+        //    string responseFromConsumer = null;
+
+        //    IBasicProperties basicProperties = channel.CreateBasicProperties();
+        //    basicProperties.ReplyTo = rpcResponseQueue;
+        //    basicProperties.CorrelationId = correlationId;
+        //    Console.WriteLine("Enter your message and press Enter.");
+        //    string message = Console.ReadLine();
+        //    byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+        //    channel.BasicPublish("", "mycompany.queues.rpc", basicProperties, messageBytes);
+
+        //    EventingBasicConsumer rpcEventingBasicConsumer = new EventingBasicConsumer(channel);
+        //    rpcEventingBasicConsumer.Received += (sender, basicDeliveryEventArgs) =>
+        //    {
+        //        IBasicProperties props = basicDeliveryEventArgs.BasicProperties;
+        //        if (props != null
+        //            && props.CorrelationId == correlationId)
+        //        {
+        //            string response = Encoding.UTF8.GetString(basicDeliveryEventArgs.Body);
+        //            responseFromConsumer = response;
+        //        }
+        //        channel.BasicAck(basicDeliveryEventArgs.DeliveryTag, false);
+        //        Console.WriteLine("Response: {0}", responseFromConsumer);
+        //        Console.WriteLine("Enter your message and press Enter.");
+        //        message = Console.ReadLine();
+        //        messageBytes = Encoding.UTF8.GetBytes(message);
+        //        channel.BasicPublish("", "mycompany.queues.rpc", basicProperties, messageBytes);
+        //    };
+        //    channel.BasicConsume(rpcResponseQueue, false, rpcEventingBasicConsumer);
+        //}
+
+        private ConsumerInfo CreateConsumerInfo(string queueName, Func<string, string, Task> processEvent, Func<string, string, Task> rpcProcessEvent = null)
+        {
+            var consumer = CreateConsumerChannel(queueName, processEvent);
+            return new ConsumerInfo(queueName, consumer);
+        }
+
+        private string GetRPCQueueName(string queueName)
+        {
+            const string RpcDefaultName = "Response";
+            return $"{queueName}_{RpcDefaultName}";
+        }
 
         public bool HasConsumersForEvent(string eventName) => consumers.ContainsKey(eventName);
 
@@ -96,6 +145,25 @@ namespace Shuttle.Bus
             return $"{typeof(TH).Name}_{typeof(T).Name}";
         }
 
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+
+            disposed = true;
+
+            if (consumers != null)
+            {
+                foreach (var eventConsumers in consumers)
+                {
+                    foreach (var consumerInfo in eventConsumers.Value)
+                        consumerInfo.Dispose();
+                }
+
+                consumers = null;
+            }
+        }
+
         class ConsumerInfo : IDisposable
         {
             public ConsumerInfo(string queueName, IModel consumer)
@@ -108,12 +176,13 @@ namespace Shuttle.Bus
 
             public IModel Consumer { get; set; }
 
+            public IModel RpcConsumer { get; set; }
+
             public void Dispose()
             {
                 Consumer?.Dispose();
+                RpcConsumer?.Dispose();
             }
         }
     }
-
-    
 }

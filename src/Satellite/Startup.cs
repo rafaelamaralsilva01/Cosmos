@@ -29,11 +29,11 @@ namespace Satellite
         {
             services.AddMvc();
 
-            services.AddSingleton<DiscoveryShuttle>(sp =>
+            services.AddSingleton<IShuttle>(sp =>
             {
                 var connection = sp.GetRequiredService<RabbitMQConnection>();
                 var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                var bus = new DiscoveryShuttle(connection, "teste", iLifetimeScope);
+                var bus = new DiscoveryShuttle(connection, iLifetimeScope);
 
                 // Config
                 bus.Subscribe<AskForTechMessage, AskForTechHandler>();
@@ -59,7 +59,7 @@ namespace Satellite
             var builder = new ContainerBuilder();
             builder.Populate(services);
             var container = builder.Build();
-            container.Resolve<DiscoveryShuttle>();
+            container.Resolve<IShuttle>();
             return new AutofacServiceProvider(container);
         }
 

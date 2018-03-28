@@ -25,7 +25,7 @@ namespace Earth.Controllers
         public Task<IEnumerable<string>> Get()
         {
             var allTechsCommand = new AskForAllTechsCommand();
-            bus.Publish(allTechsCommand);
+            bus.Publish(allTechsCommand, () => "Rafael");
 
             return Task.FromResult(new List<string> { "value1", "value2" }.AsEnumerable());
         }
